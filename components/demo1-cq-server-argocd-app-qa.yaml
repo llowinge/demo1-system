@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo1-demo1-cq-server-qa
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    system: demo1
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/llowinge/developer-charts
+    targetRevision: HEAD
+    path: quarkus-application
+    helm:
+      values: |
+        system: demo1
+        component: demo1-cq-server
+        environment: qa
+        image:
+          tag: latest
+        replicaCount: 0
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo1-qa
+  syncPolicy:
+    automated: 
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=false
+    - RespectIgnoreDifferences=true
+    - ApplyOutOfSyncOnly=true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 10m
