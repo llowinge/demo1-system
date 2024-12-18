@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo1-cq-consumer2-dev
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/llowinge/developer-charts
+    targetRevision: HEAD
+    path: spring-boot-application
+    helm:
+      values: |
+        system: demo1
+        component: demo1-cq-consumer2
+        environment: dev
+        image:
+          tag: latest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo1-dev
+  syncPolicy:
+    automated: 
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=false
+    - RespectIgnoreDifferences=true
+    - ApplyOutOfSyncOnly=true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 10m
